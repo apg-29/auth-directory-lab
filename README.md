@@ -364,3 +364,33 @@ Connection: keep-alive
 ```
 
 Se verifica la resolución DNS, la conectividad entre contenedores y el funcionamiento de NGINX y Django mediante sus nombres de dominio.
+
+## Problemas y soluciones
+
+### Proceso slapd iniciado incorrectamente
+
+Al comprobar el proceso de OpenLDAP mediante:
+
+```bash
+docker exec dpl-lab pgrep -a slapd
+```
+
+Mostraba `835 slapd -V`
+
+Primero se detuvo el proceso anterior:
+
+```bash
+docker exec dpl-lab pkill slapd
+```
+
+Después se inició OpenLDAP en primer plano, sin systemd:
+
+```bash
+docker exec -d dpl-lab slapd -d 0 -h "ldap:///"
+```
+
+La salida ahora tras pgrep sí fue la esperada:
+
+```text
+949 slapd -d 0 -h ldap:///
+```
