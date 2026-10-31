@@ -479,6 +479,103 @@ ldap_bind: Invalid credentials (49)
 
 El código de error 49 indica que las credenciales proporcionadas no son válidas.
 
+## Integración de Django con LDAP
+
+La finalidad de esta integración es que los usuarios almacenados en LDAP pueden iniciar sesión en la aplicación web sin necesidad de mantener un sistema independiente de contraseñas en Django.
+
+### Configuración LDAP de Django
+
+La aplicación Django utiliza los siguientes datos para conectarse al directorio:
+
+| Parámetro | Valor |
+| --- | --- |
+| Servidor LDAP | dpl-lab |
+| IP LDAP | 172.18.0.2 |
+| Puerto | 389 |
+| Protocolo | LDAP |
+| Base DN | dc=dpl,dc=local |
+| Unidad organizativa |	ou=usuarios |
+| Usuario de prueba | alumno |
+| DN del usuario | uid=alumno,ou=usuarios,dc=dpl,dc=local |
+
+El usuario se busca dentro de la unidad organizativa ou=usuarios.
+
+La autenticación se realiza mediante un bind LDAP utilizando el DN del usuario y la contraseña proporcionada en el formulario de inicio de sesión.
+
+### Endpoint de autenticación
+
+La aplicación dispone del endpoint:
+
+```text
+/api/login
+```
+
+Este endpoint recibe las credenciales del usuario en formato JSON:
+
+
+```text
+{
+    "usuario": "alumno",
+    "password": "CONTRASEÑA_DEL_USUARIO"
+}
+```
+
+Django utiliza esas credenciales para comprobar la autenticación contra OpenLDAP.
+
+Cuando las credenciales son correctas, devuelve el código HTTP 200 OK y una respuesta indicando que el usuario está autenticado.
+
+Cuando la contraseña es incorrecta, devuelve 401 Unauthorized.
+
+### Prueba de autenticación correcta
+
+Se ejecutó la siguiente petición desde el contenedor cliente:
+
+```bash
+docker exec dpl-cliente curl --max-time 10 -i -X POST \
+  http://www.dpl.local/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"usuario":"alumno","password":"CAMBIAR_ESTO"}'
+```
+
+Resultado obtenido:
+
+```text
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Content-Type: application/json
+```
+
+### Prueba de autenticación incorrecta
+
+Para comprobar que la aplicación rechaza las contraseñas incorrectas se ejecutó:
+
+```bash
+docker exec dpl-cliente curl --max-time 10 -i -X POST \
+  http://www.dpl.local/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"usuario":"alumno","password":"contraseñaincorrecta"}'
+```
+
+Resultado obtenido:
+
+```text
+HTTP/1.1 401 Unauthorized
+Server: nginx/1.27.5
+Content-Type: application/json
+```
+
+La respuesta JSON obtenida fue:
+
+```text
+{
+    "autenticado": false,
+    "usuario": "alumno",
+    "detalle": "automatic bind not successful - invalidCredentials"
+}
+```
+
+Esto demuestra que Django está comprobando las credenciales contra el directorio y rechazando las contraseñas incorrectas.
+
 ## Problemas y soluciones
 
 ### Proceso slapd iniciado incorrectamente
@@ -508,3 +605,35 @@ La salida ahora tras pgrep sí fue la esperada:
 ```text
 949 slapd -d 0 -h ldap:///
 ```
+
+### Configuración de red
+
+Durante las pruebas iniciales, las peticiones al endpoint /api/login se quedaban esperando hasta producir un error.
+
+Al revisar los registros de Django se encontró el siguiente error:
+
+```text
+[CRITICAL] WORKER TIMEOUT
+Error handling request /api/login
+```
+
+Para que Django pueda comunicarse con el servidor LDAP, ambos contenedores deben compartir una red Docker.
+
+Durante las pruebas se detectó que el contenedor dpl-django, después de reconstruirse, había quedado conectado únicamente a la red dpl-app_default, mientras que el servidor LDAP estaba conectado a dpl-net.
+
+Esto provocaba que Django no pudiera establecer conexión con el directorio LDAP y que las peticiones de inicio de sesión quedasen esperando hasta producir un timeout.
+
+Se comprobó la configuración de red mediante:
+
+```bash
+docker inspect dpl-lab --format '{{json .NetworkSettings.Networks}}'
+docker inspect dpl-django --format '{{json .NetworkSettings.Networks}}'
+```
+
+Se solucionó conectando Django a la red dpl-net:
+
+```bash
+docker network connect dpl-net dpl-django
+```
+
+Posteriormente se verificó nuevamente la conexión. El contenedor quedó conectado tanto a dpl-app_default como a dpl-net, permitiendo mantener la comunicación con los servicios del despliegue y con OpenLDAP.

@@ -1,6 +1,3 @@
-
-========== RESULTADOS REALES ==========
-
 ===== BIND9: named-checkconf =====
 
 Comando:
@@ -299,3 +296,150 @@ docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=alumno,ou
 Resultado:
 ldap_bind: Invalid credentials (49)
 
+
+===== DNS: NSLOOKUP DESDE CLIENTE =====
+Server:		172.18.0.2
+Address:	172.18.0.2#53
+
+Name:	www.dpl.local
+Address: 172.18.0.4
+
+
+===== DNS: DIG APP DESDE CLIENTE =====
+app.dpl.local.		3600	IN	A	172.18.0.5
+
+===== DNS: HOST WWW =====
+www.dpl.local has address 172.18.0.4
+
+===== DNS: HOST NS =====
+dpl.local name server ns1.dpl.local.
+
+===== DNS: COMPROBACION HOSTS =====
+Sin entradas locales (correcto)
+
+===== HTTP: APLICACION POR NOMBRE =====
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   123    0   123    0     0  28657      0 --:--:-- --:--:-- --:--:-- 30750
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Sat, 31 Oct 2026 22:03:50 GMT
+Connection: close
+Transfer-Encoding: chunked
+Content-Type: application/json
+
+{"mensaje": "Hola desde el servidor de aplicaciones DPL (UT4)", "hostname": "a9c9b69c059e", "fecha": "2026-10-31T23:03:50"}
+===== LDAP: LDAPSEARCH COMPLETO =====
+dn: dc=dpl,dc=local
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: DPL
+dc: dpl
+
+dn: ou=usuarios,dc=dpl,dc=local
+objectClass: organizationalUnit
+ou: usuarios
+
+dn: uid=alumno,ou=usuarios,dc=dpl,dc=local
+objectClass: inetOrgPerson
+uid: alumno
+cn: alumno
+sn: Alumno DPL
+mail: alumno@dpl.local
+
+dn: uid=maria,ou=usuarios,dc=dpl,dc=local
+objectClass: inetOrgPerson
+uid: maria
+cn: maria
+sn: Maria DPL
+mail: maria@dpl.local
+
+
+===== LDAP: SLAPCAT =====
+dn: dc=dpl,dc=local
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: DPL
+dc: dpl
+structuralObjectClass: organization
+entryUUID: e9474d80-69ab-1041-8f6a-1fc1cd861aae
+creatorsName: cn=admin,dc=dpl,dc=local
+createTimestamp: 20261031192043Z
+entryCSN: 20261031192043.528059Z#000000#000#000000
+modifiersName: cn=admin,dc=dpl,dc=local
+modifyTimestamp: 20261031192043Z
+
+dn: ou=usuarios,dc=dpl,dc=local
+objectClass: organizationalUnit
+ou: usuarios
+structuralObjectClass: organizationalUnit
+entryUUID: 2f6e48f0-69b5-1041-804e-f5a29df31649
+creatorsName: cn=admin,dc=dpl,dc=local
+createTimestamp: 20261031202706Z
+entryCSN: 20261031202706.694633Z#000000#000#000000
+modifiersName: cn=admin,dc=dpl,dc=local
+modifyTimestamp: 20261031202706Z
+
+dn: uid=alumno,ou=usuarios,dc=dpl,dc=local
+objectClass: inetOrgPerson
+uid: alumno
+cn: alumno
+sn: Alumno DPL
+mail: alumno@dpl.local
+userPassword:: Q0FNQklBUl9FU1RP
+structuralObjectClass: inetOrgPerson
+entryUUID: 2f6fdac6-69b5-1041-804f-f5a29df31649
+creatorsName: cn=admin,dc=dpl,dc=local
+createTimestamp: 20261031202706Z
+entryCSN: 20261031202706.704932Z#000000#000#000000
+modifiersName: cn=admin,dc=dpl,dc=local
+modifyTimestamp: 20261031202706Z
+
+dn: uid=maria,ou=usuarios,dc=dpl,dc=local
+objectClass: inetOrgPerson
+uid: maria
+cn: maria
+sn: Maria DPL
+mail: maria@dpl.local
+userPassword:: Q0FNQklBUl9FU1RP
+structuralObjectClass: inetOrgPerson
+entryUUID: 2f70eb6e-69b5-1041-8050-f5a29df31649
+creatorsName: cn=admin,dc=dpl,dc=local
+createTimestamp: 20261031202706Z
+entryCSN: 20261031202706.711908Z#000000#000#000000
+modifiersName: cn=admin,dc=dpl,dc=local
+modifyTimestamp: 20261031202706Z
+
+
+===== LDAP: BIND CORRECTO =====
+ldap_bind: Server is unwilling to perform (53)
+	additional info: unauthenticated bind (DN with no password) disallowed
+
+===== LDAP: BIND INCORRECTO (ERROR 49 ESPERADO) =====
+ldap_bind: Invalid credentials (49)
+
+===== APLICACION: LOGIN CORRECTO (HTTP 200 ESPERADO) =====
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/1.1 400 Bad Request
+Server: nginx/1.27.5
+Date: Sat, 31 Oct 2026 22:03:51 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+
+{"error": "Faltan usuario o contrasena"}100    74    0    40  100    34   9696   8242 --:--:-- --:--:-- --:--:-- 18500
+
+===== APLICACION: LOGIN INCORRECTO (HTTP 401 ESPERADO) =====
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0HTTP/1.1 401 Unauthorized
+Server: nginx/1.27.5
+Date: Sat, 31 Oct 2026 22:03:51 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+
+{"autenticado": false, "usuario": "alumno", "detalle": "automatic bind not successful - invalidCredentials"}100   152    0   108  100    44  12949   5275 --:--:-- --:--:-- --:--:-- 19000
