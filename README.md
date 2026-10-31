@@ -327,7 +327,7 @@ Content-Type: text/html; charset=utf-8
 Connection: keep-alive
 ```
 
-Acceso directo a Django/Gunicorn:
+### Acceso directo a Django/Gunicorn:
 
 ```bash
 docker exec dpl-cliente curl -i http://app.dpl.local:8000/api/mensaje
@@ -578,39 +578,35 @@ Esto demuestra que Django está comprobando las credenciales contra el directori
 
 ## Problemas y soluciones
 
-### Proceso slapd iniciado incorrectamente
+### Directorio LDAP
 
-Al comprobar el proceso de OpenLDAP mediante:
+* Síntoma: OpenLDAP no estaba funcionando correctamente.
+* Causa: el proceso slapd estaba iniciado con el argumento incorrecto -V.
+* Comprobación:
 
 ```bash
 docker exec dpl-lab pgrep -a slapd
 ```
 
-Mostraba `835 slapd -V`
-
-Primero se detuvo el proceso anterior:
+* Corrección:
 
 ```bash
 docker exec dpl-lab pkill slapd
-```
-
-Después se inició OpenLDAP en primer plano, sin systemd:
-
-```bash
 docker exec -d dpl-lab slapd -d 0 -h "ldap:///"
 ```
 
-La salida ahora tras pgrep sí fue la esperada:
+* Verificación: proceso activo y autenticación LDAP satisfactoria.
 
 ```text
 949 slapd -d 0 -h ldap:///
 ```
 
-### Configuración de red
+### Servidor de aplicaciones (Django)
 
-Durante las pruebas iniciales, las peticiones al endpoint /api/login se quedaban esperando hasta producir un error.
-
-Al revisar los registros de Django se encontró el siguiente error:
+* Síntoma: las peticiones a /api/login terminaban provocando WORKER TIMEOUT.
+* Causa: Django no podía completar la petición de autenticación LDAP.
+* Comprobación: revisión de los logs de Gunicorn.
+* Corrección: investigar la conectividad con LDAP.
 
 ```text
 [CRITICAL] WORKER TIMEOUT
@@ -622,6 +618,13 @@ Para que Django pueda comunicarse con el servidor LDAP, ambos contenedores deben
 Durante las pruebas se detectó que el contenedor dpl-django, después de reconstruirse, había quedado conectado únicamente a la red dpl-app_default, mientras que el servidor LDAP estaba conectado a dpl-net.
 
 Esto provocaba que Django no pudiera establecer conexión con el directorio LDAP y que las peticiones de inicio de sesión quedasen esperando hasta producir un timeout.
+
+## Puerto y conectividad entre contenedores
+
+* Síntoma: Django no podía alcanzar el servidor LDAP.
+* Causa: dpl-django estaba conectado a dpl-app_default, pero no a dpl-net.
+* Comprobación: docker inspect de ambos contenedores.
+* Corrección: docker connect de ambos contenedores a dpl-net
 
 Se comprobó la configuración de red mediante:
 
@@ -637,3 +640,51 @@ docker network connect dpl-net dpl-django
 ```
 
 Posteriormente se verificó nuevamente la conexión. El contenedor quedó conectado tanto a dpl-app_default como a dpl-net, permitiendo mantener la comunicación con los servicios del despliegue y con OpenLDAP.
+
+## Script automatizado de comprobación
+
+Se ha desarrollado el script `scripts/comprobar.sh` para automatizar
+las comprobaciones de los servicios DNS, LDAP y la integración con Django.
+
+El script realiza las siguientes verificaciones:
+
+- Validación de la configuración de BIND9.
+- Comprobación de la zona DNS.
+- Verificación de que el proceso named está activo.
+- Resolución DNS de www.dpl.local y app.dpl.local.
+- Verificación de que OpenLDAP está activo.
+- Comprobación de la existencia del usuario alumno.
+- Prueba de autenticación LDAP correcta.
+- Rechazo de credenciales LDAP incorrectas.
+- Acceso HTTP a Nginx y Django.
+- Autenticación correcta mediante Django y LDAP (HTTP 200).
+- Rechazo de autenticación incorrecta (HTTP 401).
+
+### Ejecución
+
+Desde el directorio raíz del proyecto:
+
+```bash
+IP_DPL_LAB=172.18.0.2 USER_PASSWORD='CAMBIAR_ESTO' ./scripts/comprobar.sh
+```
+
+La contraseña se proporciona mediante una variable de entorno.
+
+### Resultado
+
+El script muestra el resultado de cada comprobación mediante
+mensajes `[OK]` o `[FALLO]`.
+
+Si todas las comprobaciones se ejecutan correctamente, finaliza
+indicando:
+
+```text
+Resultado: todas las comprobaciones han pasado.
+```
+
+Si alguna comprobación falla, devuelve un código de salida distinto
+de cero.
+
+# Repositorio remoto
+
+URL del repositorio remoto: https://github.com/apg-29/auth-directory-lab

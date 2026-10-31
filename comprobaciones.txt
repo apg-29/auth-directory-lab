@@ -443,3 +443,21 @@ Transfer-Encoding: chunked
 Connection: keep-alive
 
 {"autenticado": false, "usuario": "alumno", "detalle": "automatic bind not successful - invalidCredentials"}100   152    0   108  100    44  12949   5275 --:--:-- --:--:-- --:--:-- 19000
+== DNS ==
+[OK]   named-checkconf
+[OK]   named-checkzone
+[OK]   named activo
+[OK]   www.dpl.local -> 172.18.0.4
+[OK]   app.dpl.local -> 172.18.0.5
+== Directorio ==
+[OK]   slapd activo
+[OK]   usuario alumno en el directorio
+[OK]   bind correcto
+[OK]   bind incorrecto rechazado
+== Integración ==
+[OK]   Web por nombre (200)
+[OK]   Django por nombre (200)
+[OK]   login LDAP (200)
+[OK]   login incorrecto rechazado (401)
+
+Resultado: todas las comprobaciones han pasado.
