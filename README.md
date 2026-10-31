@@ -258,3 +258,109 @@ app.dpl.local.		3600	IN	A	172.18.0.5
 
 Ambas consultas han devuelto el estado NOERROR y la respuesta autoritativa (aa), confirmando que BIND9 resuelve correctamente los nombres definidos en la zona dpl.local.
 
+Consulta mediante nslookup:
+
+```bash
+docker exec dpl-cliente nslookup www.dpl.local
+```
+
+Salida: 
+
+```text
+Server:		172.18.0.2
+Address:	172.18.0.2#53
+
+Name:	www.dpl.local
+Address: 172.18.0.4
+```
+
+Consulta del registro A mediante host:
+
+```bash
+docker exec dpl-cliente host -t a www.dpl.local
+```
+
+Salida:
+
+```text
+www.dpl.local has address 172.18.0.4
+```
+
+Comprobación de conectividad mediante ping:
+
+```bash
+docker exec dpl-cliente ping -c 3 www.dpl.local
+```
+
+Resultado:
+
+```text
+PING www.dpl.local (172.18.0.4) 56(84) bytes of data.
+64 bytes from 172.18.0.4: icmp_seq=1 ttl=64 time=10.5 ms
+64 bytes from 172.18.0.4: icmp_seq=2 ttl=64 time=0.133 ms
+64 bytes from 172.18.0.4: icmp_seq=3 ttl=64 time=0.041 ms
+
+--- www.dpl.local ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2062ms
+rtt min/avg/max/mdev = 0.041/3.552/10.484/4.901 ms
+```
+
+Las pruebas confirman que el cliente utiliza correctamente el servidor DNS de laboratorio y puede resolver y alcanzar el servidor web mediante su nombre de dominio.
+
+### Acceso HTTP
+
+Una vez verificada la resolución DNS desde el contenedor dpl-cliente, se comprueba el acceso a los servicios web mediante sus nombres de dominio.
+
+Ejecutamos curl hacia Nginx:
+
+```bash
+docker exec dpl-cliente curl -I http://www.dpl.local
+```
+
+Resultado:
+
+```text
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Date: Sat, 31 Oct 2026 18:33:46 GMT
+Content-Type: text/html; charset=utf-8
+Connection: keep-alive
+```
+
+Acceso directo a Django/Gunicorn:
+
+```bash
+docker exec dpl-cliente curl -i http://app.dpl.local:8000/api/mensaje
+```
+
+Resultado:
+
+```text
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Sat, 31 Oct 2026 18:34:54 GMT
+Connection: close
+Transfer-Encoding: chunked
+Content-Type: application/json
+
+{"mensaje": "Hola desde el servidor de aplicaciones DPL (UT4)", "hostname": "1b37018193ea", "fecha": "2026-10-31T19:34100   123    0   123    0     0  28062      0 --:--:-- --:--:-- --:--:-- 30750
+```
+
+Por último, comprobamos el acceso a Django pero a través del proxy inverso de NGINX:
+
+```bash
+docker exec dpl-cliente curl -i http://www.dpl.local/api/mensaje
+```
+
+Resultado:
+
+```text
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Date: Sat, 31 Oct 2026 18:36:26 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+```
+
+Se verifica la resolución DNS, la conectividad entre contenedores y el funcionamiento de NGINX y Django mediante sus nombres de dominio.

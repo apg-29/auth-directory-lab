@@ -1,0 +1,227 @@
+
+========== RESULTADOS REALES ==========
+
+===== BIND9: named-checkconf =====
+
+Comando:
+docker exec dpl-lab named-checkconf
+
+Resultado:
+Sin salida. Código de retorno 0.
+Configuración correcta.
+
+===== BIND9: named-checkzone =====
+zone dpl.local/IN: loaded serial 2026103101
+OK
+
+===== BIND9: proceso =====
+449 named -g
+
+===== BIND9: puerto 53 =====
+UNCONN 0      0         172.18.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=72))
+UNCONN 0      0         172.18.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=73))
+UNCONN 0      0         172.18.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=75))
+UNCONN 0      0         172.18.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=76))
+UNCONN 0      0         172.18.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=74))
+UNCONN 0      0         172.17.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=65))
+UNCONN 0      0         172.17.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=64))
+UNCONN 0      0         172.17.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=66))
+UNCONN 0      0         172.17.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=63))
+UNCONN 0      0         172.17.0.2:53         0.0.0.0:*    users:(("named",pid=449,fd=62))
+UNCONN 0      0          127.0.0.1:53         0.0.0.0:*    users:(("named",pid=449,fd=48))
+UNCONN 0      0          127.0.0.1:53         0.0.0.0:*    users:(("named",pid=449,fd=50))
+UNCONN 0      0          127.0.0.1:53         0.0.0.0:*    users:(("named",pid=449,fd=51))
+UNCONN 0      0          127.0.0.1:53         0.0.0.0:*    users:(("named",pid=449,fd=49))
+UNCONN 0      0          127.0.0.1:53         0.0.0.0:*    users:(("named",pid=449,fd=47))
+UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=449,fd=84))
+UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=449,fd=83))
+UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=449,fd=82))
+UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=449,fd=86))
+UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=449,fd=85))
+
+===== DNS: SOA =====
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @172.18.0.2 dpl.local SOA
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 24887
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 73f073645e06d20c010000006ae636c536ec33c6999016ba (good)
+;; QUESTION SECTION:
+;dpl.local.			IN	SOA
+
+;; ANSWER SECTION:
+dpl.local.		3600	IN	SOA	ns1.dpl.local. admin.dpl.local. 2026103101 3600 900 604800 86400
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 18:43:17 UTC 2026
+;; MSG SIZE  rcvd: 112
+
+
+===== DNS: NS =====
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @172.18.0.2 dpl.local NS
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 23896
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: adec57956acae84f010000006ae636c5b33d458e37505f1b (good)
+;; QUESTION SECTION:
+;dpl.local.			IN	NS
+
+;; ANSWER SECTION:
+dpl.local.		3600	IN	NS	ns1.dpl.local.
+
+;; ADDITIONAL SECTION:
+ns1.dpl.local.		3600	IN	A	172.18.0.2
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 18:43:17 UTC 2026
+;; MSG SIZE  rcvd: 100
+
+
+===== DNS: ns1 =====
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> ns1.dpl.local
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 50394
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 55d2981d6dc5abe8010000006ae636c6b039cf14428e57f1 (good)
+;; QUESTION SECTION:
+;ns1.dpl.local.			IN	A
+
+;; ANSWER SECTION:
+ns1.dpl.local.		3600	IN	A	172.18.0.2
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 18:43:18 UTC 2026
+;; MSG SIZE  rcvd: 86
+
+
+===== DNS: www =====
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> www.dpl.local
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 15327
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 0f41f54032501727010000006ae636c6139a17fe0d51311f (good)
+;; QUESTION SECTION:
+;www.dpl.local.			IN	A
+
+;; ANSWER SECTION:
+www.dpl.local.		3600	IN	A	172.18.0.4
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 18:43:18 UTC 2026
+;; MSG SIZE  rcvd: 86
+
+
+===== DNS: app =====
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> app.dpl.local
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 42110
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: ab81d55a10274fe1010000006ae636c653cccd9f9821ea12 (good)
+;; QUESTION SECTION:
+;app.dpl.local.			IN	A
+
+;; ANSWER SECTION:
+app.dpl.local.		3600	IN	A	172.18.0.5
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 18:43:18 UTC 2026
+;; MSG SIZE  rcvd: 86
+
+
+===== DNS: nslookup =====
+Server:		172.18.0.2
+Address:	172.18.0.2#53
+
+Name:	www.dpl.local
+Address: 172.18.0.4
+
+
+===== DNS: host =====
+www.dpl.local has address 172.18.0.4
+
+===== DNS: ping =====
+PING www.dpl.local (172.18.0.4) 56(84) bytes of data.
+64 bytes from 172.18.0.4: icmp_seq=1 ttl=64 time=0.598 ms
+64 bytes from 172.18.0.4: icmp_seq=2 ttl=64 time=0.056 ms
+64 bytes from 172.18.0.4: icmp_seq=3 ttl=64 time=0.046 ms
+
+--- www.dpl.local ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2112ms
+rtt min/avg/max/mdev = 0.046/0.233/0.598/0.257 ms
+
+===== HTTP: NGINX =====
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Date: Sat, 31 Oct 2026 18:43:20 GMT
+Content-Type: text/html; charset=utf-8
+Connection: keep-alive
+
+
+===== HTTP: DJANGO DIRECTO =====
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   123    0   123    0     0  34062      0 --:--:-- --:--:-- --:--:-- 41000
+HTTP/1.1 200 OK
+Server: gunicorn
+Date: Sat, 31 Oct 2026 18:43:20 GMT
+Connection: close
+Transfer-Encoding: chunked
+Content-Type: application/json
+
+{"mensaje": "Hola desde el servidor de aplicaciones DPL (UT4)", "hostname": "1b37018193ea", "fecha": "2026-10-31T19:43:20"}
+===== HTTP: NGINX -> DJANGO =====
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   123    0   123    0     0  49219      0 --:--:-- --:--:-- --:--:-- 61500
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Date: Sat, 31 Oct 2026 18:43:21 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+
+{"mensaje": "Hola desde el servidor de aplicaciones DPL (UT4)", "hostname": "1b37018193ea", "fecha": "2026-10-31T19:43:21"}
