@@ -177,3 +177,84 @@ UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=3
 UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=368,fd=86))
 UNCONN 0      0              [::1]:53            [::]:*    users:(("named",pid=368,fd=85))
 ```
+
+## Configuración DNS de dpl-cliente
+
+Para que el contenedor dpl-cliente utilice el servidor DNS BIND9 instalado en dpl-lab, se ha configurado su resolución DNS para consultar la dirección 172.18.0.2.
+
+Se ha establecido la siguiente configuración en /etc/resolv.conf:
+
+```text
+nameserver 172.18.0.2
+search home
+options ndots:0
+```
+
+Para realizar las consultas desde el cliente se ha instalado dnsutils y ping:
+
+```bash
+docker exec -it dpl-cliente apt update
+docker exec -it dpl-cliente apt install -y dnsutils iputils-ping
+```
+
+### Comprobación de la resolución DNS
+
+Desde el cliente se han realizado consultas utilizando dig:
+
+```bash
+docker exec dpl-cliente dig www.dpl.local
+docker exec dpl-cliente dig app.dpl.local
+```
+
+Los resultados obtenidos han sido:
+
+
+```text
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> www.dpl.local
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 31903
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 37a104d724c5f4ad010000006ae629395541cc1fd40c1e64 (good)
+;; QUESTION SECTION:
+;www.dpl.local.			IN	A
+
+;; ANSWER SECTION:
+www.dpl.local.		3600	IN	A	172.18.0.4
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 17:45:29 UTC 2026
+;; MSG SIZE  rcvd: 86
+
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> app.dpl.local
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 61440
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 53ada25ab0d87495010000006ae6293e8af9dce3768ab78f (good)
+;; QUESTION SECTION:
+;app.dpl.local.			IN	A
+
+;; ANSWER SECTION:
+app.dpl.local.		3600	IN	A	172.18.0.5
+
+;; Query time: 0 msec
+;; SERVER: 172.18.0.2#53(172.18.0.2) (UDP)
+;; WHEN: Sat Oct 31 17:45:34 UTC 2026
+;; MSG SIZE  rcvd: 86
+```
+
+Ambas consultas han devuelto el estado NOERROR y la respuesta autoritativa (aa), confirmando que BIND9 resuelve correctamente los nombres definidos en la zona dpl.local.
+
