@@ -225,3 +225,77 @@ Transfer-Encoding: chunked
 Connection: keep-alive
 
 {"mensaje": "Hola desde el servidor de aplicaciones DPL (UT4)", "hostname": "1b37018193ea", "fecha": "2026-10-31T19:43:21"}
+
+===== LDAP: PROCESO SLAPD =====
+
+Comando:
+docker exec dpl-lab pgrep -a slapd
+
+Resultado:
+949 slapd -d 0 -h ldap:///
+
+===== LDAP: PUERTO 389 =====
+
+Comando:
+docker exec dpl-lab ss -lntp | grep ':389'
+
+Resultado:
+LISTEN 0 2048 0.0.0.0:389 0.0.0.0:* users:(("slapd",pid=949,fd=6))
+LISTEN 0 2048 [::]:389 [::]:* users:(("slapd",pid=949,fd=7))
+
+===== LDAP: VOLCADO DE LA BASE DE DATOS =====
+
+Comando:
+docker exec dpl-lab slapcat
+
+Resultado:
+Se comprueba la existencia de:
+- dc=dpl,dc=local
+- ou=usuarios,dc=dpl,dc=local
+- uid=alumno,ou=usuarios,dc=dpl,dc=local
+- uid=maria,ou=usuarios,dc=dpl,dc=local
+
+===== LDAP: BÚSQUEDA DE USUARIOS DESDE EL CLIENTE =====
+
+Comando:
+docker exec dpl-cliente ldapsearch -x -LLL -H ldap://172.18.0.2 -b "ou=usuarios,dc=dpl,dc=local" "(objectClass=inetOrgPerson)" dn cn mail
+
+Resultado:
+dn: uid=alumno,ou=usuarios,dc=dpl,dc=local
+cn: alumno
+mail: alumno@dpl.local
+
+dn: uid=maria,ou=usuarios,dc=dpl,dc=local
+cn: maria
+mail: maria@dpl.local
+
+===== LDAP: AUTENTICACIÓN CORRECTA ALUMNO =====
+
+Comando:
+docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=alumno,ou=usuarios,dc=dpl,dc=local" -W
+
+Resultado:
+dn:uid=alumno,ou=usuarios,dc=dpl,dc=local
+
+===== LDAP: AUTENTICACIÓN CORRECTA MARIA =====
+
+Comando:
+docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=Maria,ou=usuarios,dc=dpl,dc=local" -W
+
+Resultado:
+dn:uid=maria,ou=usuarios,dc=dpl,dc=local
+
+===== LDAP: AUTENTICACIÓN INCORRECTA =====
+
+Comando:
+docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=Maria,ou=usuarios,dc=dpl,dc=local" -W
+
+Resultado:
+ldap_bind: Invalid credentials (49)
+
+Comprobación adicional:
+docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=alumno,ou=usuarios,dc=dpl,dc=local" -W
+
+Resultado:
+ldap_bind: Invalid credentials (49)
+

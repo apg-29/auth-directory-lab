@@ -365,6 +365,120 @@ Connection: keep-alive
 
 Se verifica la resolución DNS, la conectividad entre contenedores y el funcionamiento de NGINX y Django mediante sus nombres de dominio.
 
+## Configuración de usuarios LDAP
+
+Se ha utilizado el fichero ldif/usuarios.ldif, que contiene las siguientes entradas:
+
+* Unidad organizativa: ou=usuarios,dc=dpl,dc=local.
+* Usuario alumno.
+* Usuario maria.
+
+Los usuarios utilizan la clase de objeto inetOrgPerson, que permite almacenar información personal como el nombre, apellidos y correo electrónico.
+
+Los DN completos de los usuarios son:
+
+```text
+uid=alumno,ou=usuarios,dc=dpl,dc=local
+uid=maria,ou=usuarios,dc=dpl,dc=local
+```
+
+### Incorporación de las entradas al directorio
+
+Desde el contenedor dpl-lab se ha ejecutado el siguiente comando para añadir las entradas del fichero LDIF:
+
+```bash
+ldapadd -x -H ldap://localhost -D "cn=admin,dc=dpl,dc=local" -W -f ldif/usuarios.ldif
+```
+Resultado obtenido:
+
+```text
+adding new entry "ou=usuarios,dc=dpl,dc=local"
+adding new entry "uid=alumno,ou=usuarios,dc=dpl,dc=local"
+adding new entry "uid=maria,ou=usuarios,dc=dpl,dc=local"
+```
+
+## Comprobación de los usuarios mediante ldapsearch
+
+Para comprobar que las entradas están disponibles desde otro contenedor, se ha realizado una búsqueda desde dpl-cliente:
+
+```bash
+docker exec dpl-cliente ldapsearch -x -LLL -H ldap://172.18.0.2 -b "ou=usuarios,dc=dpl,dc=local" "(objectClass=inetOrgPerson)" dn cn mail
+```
+
+Resultado:
+
+```text
+dn: uid=alumno,ou=usuarios,dc=dpl,dc=local
+cn: alumno
+mail: alumno@dpl.local
+
+dn: uid=maria,ou=usuarios,dc=dpl,dc=local
+cn: maria
+mail: maria@dpl.local
+```
+
+## Comprobación de la base de datos mediante slapcat
+
+También se ha utilizado slapcat para consultar directamente el contenido de la base de datos LDAP:
+
+```bash
+docker exec dpl-lab slapcat
+```
+
+Salida:
+
+```text
+dn: dc=dpl,dc=local
+
+dn: ou=usuarios,dc=dpl,dc=local
+
+dn: uid=alumno,ou=usuarios,dc=dpl,dc=local
+
+dn: uid=maria,ou=usuarios,dc=dpl,dc=local
+```
+
+## Comprobación de autenticación mediante ldapwhoami
+
+Para verificar que los usuarios pueden autenticarse en el directorio se ha utilizado ldapwhoami desde el contenedor cliente.
+
+Autenticación correcta del usuario alumno:
+
+```bash
+docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=alumno,ou=usuarios,dc=dpl,dc=local" -W
+```
+
+Resultado:
+
+```text
+dn:uid=alumno,ou=usuarios,dc=dpl,dc=local
+```
+
+Autenticación correcta del usuario maria:
+
+```bash
+docker exec -it dpl-cliente ldapwhoami -x -H ldap://172.18.0.2 -D "uid=Maria,ou=usuarios,dc=dpl,dc=local" -W
+```
+
+Resultado:
+
+```text
+dn:uid=maria,ou=usuarios,dc=dpl,dc=local
+```
+
+Ambas autenticaciones han sido satisfactorias.
+
+Comprobación de autenticación incorrecta
+
+Para comprobar el comportamiento del servidor ante credenciales incorrectas se han realizado pruebas adicionales.
+
+En ambos casos, LDAP ha devuelto:
+
+```text
+ldap_bind: Invalid credentials (49)
+```
+
+El código de error 49 indica que las credenciales proporcionadas no son válidas.
+
 ## Problemas y soluciones
 
 ### Proceso slapd iniciado incorrectamente
