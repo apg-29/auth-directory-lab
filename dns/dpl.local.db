@@ -1,0 +1,12 @@
+$TTL 3600
+$ORIGIN dpl.local.
+@       IN  SOA ns1.dpl.local. admin.dpl.local. (
+        2026103101 ; serial
+        3600       ; refresh
+        900        ; retry
+        604800     ; expire
+        86400 )    ; minimum TTL
+@       IN  NS  ns1.dpl.local.
+ns1     IN  A   172.18.0.2
+www     IN  A   172.18.0.4
+app     IN  A   172.18.0.5
